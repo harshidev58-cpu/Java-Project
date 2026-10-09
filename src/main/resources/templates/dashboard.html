@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Dashboard · SmartLearn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .smartlearn-wrap { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="bg-body-tertiary">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<main class="container py-4">
+    <header class="mb-4">
+        <p class="text-primary fw-semibold mb-1">Student dashboard</p>
+        <h1 class="h2 smartlearn-wrap" th:text="|Welcome, ${student.name}|">Welcome</h1>
+        <p class="text-body-secondary mb-0">Your courses, deadlines, and course announcements.</p>
+    </header>
+
+    <section class="mb-4" aria-labelledby="courses-heading">
+        <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-3">
+            <h2 class="h4 mb-0" id="courses-heading">Your Courses</h2>
+            <span class="text-body-secondary"
+                  th:text="${#lists.size(enrollments) == 1 ? '1 enrolled section' : #lists.size(enrollments) + ' enrolled sections'}">
+                Enrolled sections
+            </span>
+        </div>
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-4" th:each="enrollment : ${enrollments}">
+                <article class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <p class="small text-primary fw-semibold mb-1"
+                           th:text="${enrollment.section.course.code}">COURSE</p>
+                        <h3 class="h5 card-title smartlearn-wrap"
+                            th:text="${enrollment.section.course.title}">Course title</h3>
+                        <p class="text-body-secondary smartlearn-wrap"
+                           th:text="|${enrollment.section.name} · ${enrollment.section.semester}|">Section · semester</p>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Progress</span>
+                            <span th:text="|${enrollment.progressPercent}%|">0%</span>
+                        </div>
+                        <div class="progress" role="progressbar" aria-label="Course progress"
+                             th:attr="aria-valuenow=${enrollment.progressPercent}"
+                             aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" th:style="|width: ${enrollment.progressPercent}%;|"></div>
+                        </div>
+                        <a class="stretched-link"
+                           th:href="@{/course/{sectionId}(sectionId=${enrollment.section.id},studentId=${student.id})}">
+                            <span class="visually-hidden" th:text="|Open ${enrollment.section.course.title}|">Open course</span>
+                        </a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4 align-items-start">
+        <section class="col-12 col-lg-6" aria-labelledby="upcoming-heading">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h4 card-title" id="upcoming-heading">Upcoming Assignments</h2>
+                    <p class="text-body-secondary">Deadlines across all your enrolled sections.</p>
+                    <div th:if="${!#lists.isEmpty(overdueAssignments)}" class="mb-3">
+                        <h3 class="h6 text-danger">Overdue</h3>
+                        <article class="border border-danger rounded p-3 mb-2 bg-danger-subtle smartlearn-wrap"
+                                 th:each="assignment : ${overdueAssignments}">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <strong th:text="${assignment.title}">Assignment</strong>
+                                <span class="badge text-bg-danger">Overdue</span>
+                            </div>
+                            <small class="text-body-secondary"
+                                   th:text="|${assignment.section.course.code} · Due ${overdueDueDates[assignment.id]}|">Course · due date</small>
+                        </article>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(upcomingAssignments)}">
+                        <h3 class="h6">Due next</h3>
+                        <article class="border rounded p-3 mb-2 smartlearn-wrap" th:each="assignment : ${upcomingAssignments}">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <strong th:text="${assignment.title}">Assignment</strong>
+                                <span class="badge text-bg-primary">Pending</span>
+                            </div>
+                            <small class="text-body-secondary"
+                                   th:text="|${assignment.section.course.code} · Due ${upcomingDueDates[assignment.id]}|">Course · due date</small>
+                        </article>
+                    </div>
+                    <p class="mb-0 text-body-secondary"
+                       th:if="${#lists.isEmpty(upcomingAssignments) and #lists.isEmpty(overdueAssignments)}">
+                        No assignments to show right now.
+                    </p>
+                    <a class="btn btn-outline-primary btn-sm mt-2"
+                       th:href="@{/assignments(studentId=${student.id})}">View all assignments</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-12 col-lg-6" aria-labelledby="announcements-heading">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h4 card-title" id="announcements-heading">Relevant Announcements</h2>
+                    <div th:if="${#maps.isEmpty(announcementGroups)}" class="text-body-secondary">
+                        No announcements for your enrollments.
+                    </div>
+                    <div th:each="group : ${announcementGroups}" class="mb-3">
+                        <h3 class="h6" th:text="${group.key}">HIGH</h3>
+                        <article class="border rounded p-3 mb-2 smartlearn-wrap" th:each="announcement : ${group.value}">
+                            <strong th:text="${announcement.title}">Announcement title</strong>
+                            <p class="mb-1" th:text="${announcement.message}">Announcement text</p>
+                            <small class="text-body-secondary" th:text="${announcementPublishedDates[announcement.id]}">Published date</small>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

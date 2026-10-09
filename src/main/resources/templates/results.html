@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${analytics.quizTitle} Results | SmartLearn|">Quiz Results | SmartLearn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<main class="container py-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <p class="text-uppercase text-primary small fw-semibold mb-1">Instructor results</p>
+            <h1 class="h2 mb-0" th:text="${analytics.quizTitle}">Sample quiz</h1>
+        </div>
+        <a class="btn btn-primary" th:href="@{/instructor/quiz/{id}/export(id=${quizId})}">
+            Download Excel
+        </a>
+    </div>
+
+    <section aria-label="Quiz summary" class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="card h-100"><div class="card-body">
+                <h2 class="h6 text-secondary">Average score</h2>
+                <p class="display-6 mb-0" th:text="|${#numbers.formatDecimal(analytics.averageScore, 1, 1)}%|">0%</p>
+            </div></div>
+        </div>
+        <div class="col-6 col-xl-2"><div class="card h-100"><div class="card-body">
+            <h2 class="h6 text-secondary">Highest</h2><p class="h3 mb-0" th:text="|${#numbers.formatDecimal(analytics.highestScore, 1, 1)}%|">0%</p>
+        </div></div></div>
+        <div class="col-6 col-xl-2"><div class="card h-100"><div class="card-body">
+            <h2 class="h6 text-secondary">Lowest</h2><p class="h3 mb-0" th:text="|${#numbers.formatDecimal(analytics.lowestScore, 1, 1)}%|">0%</p>
+        </div></div></div>
+        <div class="col-12 col-sm-6 col-xl-4"><div class="card h-100"><div class="card-body">
+            <h2 class="h6 text-secondary">Below 40%</h2><p class="h3 mb-0" th:text="${analytics.belowFortyCount}">0</p>
+        </div></div></div>
+        <div class="col-12"><div class="card"><div class="card-body">
+            <h2 class="h6 text-secondary">Hardest question</h2>
+            <p class="mb-1" th:if="${analytics.hardestQuestion != null}" th:text="${analytics.hardestQuestion.prompt}">Question text</p>
+            <p class="mb-1" th:if="${analytics.hardestQuestion == null}">No submitted attempts to compare yet.</p>
+            <span class="badge text-bg-danger" th:if="${analytics.hardestQuestion != null}"
+                  th:text="|${#numbers.formatDecimal(analytics.hardestQuestion.percentCorrect, 1, 1)}% correct|">0% correct</span>
+        </div></div></div>
+    </section>
+
+    <section class="card mb-4" aria-labelledby="attempts-heading">
+        <div class="card-body">
+            <h2 id="attempts-heading" class="h4">Submitted attempts</h2>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead><tr><th scope="col">Student</th><th scope="col">Score</th><th scope="col">Submitted</th></tr></thead>
+                    <tbody>
+                    <tr th:each="attempt : ${analytics.attempts}">
+                        <td th:text="${attempt.studentName}">Student name</td>
+                        <td th:text="|${#numbers.formatDecimal(attempt.score, 1, 1)}%|">0%</td>
+                        <td th:text="${attempt.submittedAt}">Oct 9, 2026, 9:00 AM</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(analytics.attempts)}"><td colspan="3" class="text-secondary">No submitted attempts yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="card" aria-labelledby="question-heading">
+        <div class="card-body">
+            <h2 id="question-heading" class="h4">Question analysis</h2>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th scope="col">Question</th><th scope="col">Correct</th></tr></thead>
+                    <tbody>
+                    <tr th:each="question : ${analytics.questions}">
+                        <td th:text="${question.prompt}">Question text</td>
+                        <td th:text="|${#numbers.formatDecimal(question.percentCorrect, 1, 1)}% (${question.correctCount}/${question.totalAttempts})|">0%</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(analytics.questions)}"><td colspan="2" class="text-secondary">No questions have been added.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Maven build output
+target/
+
+# Local H2 database and logs
+data/
+*.mv.db
+*.trace.db
+*.lock.db
+logs/
+
+# Environment variables and local-only credentials
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
